@@ -1,28 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  Function:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-Function
-      Description: !Sub
-        - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
-        - ResourceName: Function
-      CodeUri: src/Function
-      Handler: handler.handler
-      Runtime: python3.7
-      MemorySize: 3008
-      Timeout: 30
-      Tracing: Active
-      Policies:
-        - AWSXrayWriteOnlyAccess
-      Events:
-        ApiGET:
-          Type: Api
-          Properties:
-            Path: /
-            Method: GET
-            RestApiId: !Ref Api
   Api:
     Type: AWS::Serverless::Api
     Properties:
@@ -39,10 +17,32 @@ Resources:
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 type: aws_proxy
-                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Function.Arn}/invocations
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreatePythonRequest.Arn}/invocations
               responses: {}
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
+  CreatePythonRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-CreatePythonRequest
+      Description: !Sub
+        - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
+        - ResourceName: CreatePythonRequest
+      CodeUri: src/Function
+      Handler: handler.handler
+      Runtime: python3.7
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Policies:
+        - AWSXrayWriteOnlyAccess
+      Events:
+        ApiGET:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+            RestApiId: !Ref Api
 Parameters:
   StackTagName:
     Type: String
